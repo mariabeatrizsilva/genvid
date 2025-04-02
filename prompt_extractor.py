@@ -22,18 +22,7 @@ class PromptExtractor:
         else:
             return None
         
-    def test(self, video_files):
-        """
-        Test method to process video files and print the results.
-
-        Args:
-            video_files (list): A list of video file names to process.
-        """
-        print("Testing with provided video files...")
-        for file in video_files:
-            print(f"Processing file: {file}")
-
-    def process_video_files(self, video_files):
+    def process_video_files(self, video_files,csv_path='processed_video_data.csv'):
         """
         Processes video files, extracts UUIDs, prefixes, and associated prompts,
         and stores them in a structured data format.
@@ -46,9 +35,11 @@ class PromptExtractor:
         """
 
         data = []  # Initialize an empty list to store the structured data
+        processed_count = 0
+        total_videos = len(video_files)
 
         for file in video_files:
-            print ("Processing file: {file}")
+            # print ("Processing file: {file}")
             for prefix in self.ff:
                 if file.startswith(prefix):
                     uuid = file[len(prefix):].split('.')[0]  # Remove prefix and file extension
@@ -62,7 +53,7 @@ class PromptExtractor:
                             "prefix": prefix,
                             "prompt": prompt
                         })
-                        print(f"Found prompt for uuid: {uuid} with prefix: {prefix}. Prompt: {prompt}")
+                        # print(f"Found prompt for uuid: {uuid} with prefix: {prefix}. Prompt: {prompt}")
                     else:
                         data.append({
                             "uuid": uuid,
@@ -72,10 +63,14 @@ class PromptExtractor:
                         print(f"No prompt found for uuid: {uuid}")
 
                     break  # Move to the next file after finding a matching prefix
+            processed_count += 1
+            if processed_count % 20 == 0 or processed_count == total_videos:
+                percentage = (processed_count / total_videos) * 100
+                print(f"Processed {processed_count}/{total_videos} videos ({percentage:.2f}%)")
 
         # save data to csv and return
         data_df = pd.DataFrame(data)
-        data_df.to_csv('processed_video_data.csv', index=False)  # Save to CSV for future use
+        data_df.to_csv(csv_path, index=False)  # Save to CSV for future use
         return data_df
 
     @staticmethod
@@ -90,3 +85,26 @@ class PromptExtractor:
         files = os.listdir(folder)
         video_files = [f for f in files if f.endswith(('.mp4', '.avi', '.mov', '.mkv'))]
         return video_files
+    
+    @staticmethod
+    def list_video_files_multi(folders):
+        """
+        List all video files in the given folder(s).
+
+        Args:
+            folders: A string (single folder path) or a list of strings (multiple folder paths).
+
+        Returns:
+            A list of strings, where each string is the full path to a video file.
+        """
+
+        all_video_files = []
+
+        if isinstance(folders, str):  # Single folder
+            folders = [folders]  # Make it a list for consistent processing
+
+        for folder in folders:
+            print(f"Listing video files in folder: {folder}")
+            all_video_files.extend(PromptExtractor.list_video_files(folder))  # Call the single-folder function
+
+        return all_video_files
