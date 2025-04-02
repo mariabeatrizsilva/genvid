@@ -21,6 +21,17 @@ class PromptExtractor:
             return entry['prompt'].values[0], int(entry.index[0])  # Return the prompt and its index in the dataframe
         else:
             return None
+        
+    def test(self, video_files):
+        """
+        Test method to process video files and print the results.
+
+        Args:
+            video_files (list): A list of video file names to process.
+        """
+        print("Testing with provided video files...")
+        for file in video_files:
+            print(f"Processing file: {file}")
 
     def process_video_files(self, video_files):
         """
@@ -37,9 +48,11 @@ class PromptExtractor:
         data = []  # Initialize an empty list to store the structured data
 
         for file in video_files:
+            print ("Processing file: {file}")
             for prefix in self.ff:
                 if file.startswith(prefix):
                     uuid = file[len(prefix):].split('.')[0]  # Remove prefix and file extension
+                    print(uuid)
 
                     prompt_info = self.prompt_from_id(uuid)
                     if prompt_info:
@@ -49,6 +62,7 @@ class PromptExtractor:
                             "prefix": prefix,
                             "prompt": prompt
                         })
+                        print(f"Found prompt for uuid: {uuid} with prefix: {prefix}. Prompt: {prompt}")
                     else:
                         data.append({
                             "uuid": uuid,
